@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:socket_io_client/socket_io_client.dart';
+import '../globals.dart' as globals;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

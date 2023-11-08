@@ -4,7 +4,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_background_service_android/flutter_background_service_android.dart';
-
+import 'package:socket_io_client/socket_io_client.dart';
+import '../globals.dart' as globals;
 Future<void> initializeService() async{
   final service = await FlutterBackgroundService();
   await service.configure(
@@ -40,16 +41,48 @@ void onStart(ServiceInstance service) {
   service.on('stopService').listen((event) {
     service.stopSelf();
   });
-  Timer.periodic(const Duration(seconds: 1), (timer) async {
-    if(service is AndroidServiceInstance){
-      if ( await service.isForegroundService()) {
-        service.setForegroundNotificationInfo(
-            title: "SCRIPT ACADEMY",
-            content: "sub my channel",
-        );
-      }
-    }
-    print("Hello from the background");
-    service.invoke('update');
-  });
+
+  // Timer.periodic(const Duration(seconds: 1), (timer) async {
+  //   if(service is AndroidServiceInstance){
+  //     if ( await service.isForegroundService()) {
+  //       service.setForegroundNotificationInfo(
+  //           title: "SCRIPT ACADEMY",
+  //           content: "sub my channel",
+  //       );
+  //     }
+  //   }
+  //   print("Hello from the background");
+  //   service.invoke('update');
+
+  //
+  // });
+  connectToSocketServer(1);
+}
+
+Future<void> connectToSocketServer(id) async {
+  // print('connecting to socket server');
+  final String serverUrl = 'http://192.168.1.40:3000';
+  // late Socket socket;
+  try{
+    globals.socket = await io(serverUrl, <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': false,
+      'query': 'id=$id'
+    });
+    globals.socket.on('connect', (_) {
+      print('connect');
+    });
+    globals.socket.on('rehabilitacion', (data){
+      print(data['message']);
+      // showNotification(data['message']);
+    });
+    globals.socket.on('pago_estado', (data){
+      print('socket pago_estado');
+      print(data);
+      // changeCorteStatus(data['corte_id'], 'ES PAGADO', data['message']);
+    });
+    globals.socket.connect();
+  }catch(e){
+    print(e.toString());
+  }
 }
